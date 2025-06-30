@@ -1,5 +1,58 @@
 # Changelog of the Pytest Coverage Comment
 
+## [Pytest Coverage Comment 1.1.54](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.54)
+
+**Release Date:** 2025-04-30
+
+#### Changes
+
+- add support for new format for `pytest-coverage-path`, basically it add support for output of `pytest-cov >= 6.0.0`
+- bump dev dependencies
+
+## [Pytest Coverage Comment 1.1.53](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.53)
+
+**Release Date:** 2024-10-10
+
+#### Changes
+
+- add option `xml-skip-covered` to skip lines that covered for 100% based on xml report, thanks to [@NikTerentev](https://github.com/NikTerentev) for contribution
+- bump dev dependencies and minor for `@actions/core`
+
+## [Pytest Coverage Comment 1.1.52](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.52)
+
+**Release Date:** 2024-06-30
+
+#### Changes
+
+- fix commit `sha` and `ref` for `workflow_run`, instead of from the default branch, thanks to [@cecheta](https://github.com/cecheta) for contribution
+- use `label` instead of `ref` for `workflow_run` and `workflow_dispatch`, thanks to [@cecheta](https://github.com/cecheta) for contribution
+- use data from all testsuites instead the first one, thanks to [@eltoder](https://github.com/eltoder) for contribution
+
+## [Pytest Coverage Comment 1.1.51](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.51)
+
+**Release Date:** 2024-01-13
+
+#### Changes
+
+- add `workflow_run` to the events that can trigger this action, big thanks to [@Bouni](https://github.com/Bouni) for contribution
+
+## [Pytest Coverage Comment 1.1.50](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.50)
+
+**Release Date:** 2023-11-26
+
+#### Changes
+
+- add support for updateing the comment in PR through `workflow_dispatch` event by passing manually issue number, thanks to [@alexjyong](https://github.com/alexjyong) for contribution
+
+## [Pytest Coverage Comment 1.1.49](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.49)
+
+**Release Date:** 2023-11-15
+
+#### Changes
+
+- remove warning by run in `node20` instead `node16`
+- add support for `workflow_dispatch` event, thanks to [@f100024](https://github.com/f100024) for contribution
+
 ## [Pytest Coverage Comment 1.1.48](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.48)
 
 **Release Date:** 2023-08-02

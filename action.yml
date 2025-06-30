@@ -16,6 +16,11 @@ inputs:
     default: './pytest-coverage.txt'
     required: false
 
+  issue-number:
+    description: 'PR number for the PR you want the comment to post to.'
+    default: ''
+    required: false
+
   pytest-xml-coverage-path:
     description: 'The location of coverage-xml from pytest-coverage'
     default: ''
@@ -48,6 +53,11 @@ inputs:
 
   hide-comment:
     description: 'Hide the whole comment (use when you need only `output`)'
+    default: 'false'
+    required: false
+
+  xml-skip-covered:
+    description: 'Hide files from xml report with 100% coverage'
     default: 'false'
     required: false
 
@@ -120,5 +130,5 @@ outputs:
     description: 'Info from testcase that has failures/errors/skipped, get from `junitxml`'
 
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'

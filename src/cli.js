@@ -42,7 +42,7 @@ const main = async () => {
   const multipleFiles = [
     `My Title 1, ${getPathToFile(covFile)}, ${getPathToFile(xmlFile)}`,
     `My Title 2, ${getPathToFile(covFile).replace('_4', '_3')}, ${getPathToFile(
-      xmlFile
+      xmlFile,
     ).replace('_1', '_2')}`,
   ];
 
@@ -67,6 +67,7 @@ const main = async () => {
     reportOnlyChangedFiles: false,
     removeLinkFromBadge: false,
     hideComment: false,
+    xmlSkipCovered: false,
     xmlTitle: '',
     // multipleFiles,
     changedFiles: {

@@ -63,7 +63,12 @@ const getActualLines = (data) => {
     return null;
   }
 
-  return lines.slice(startIndex + 3, endIndex - 1);
+  const oldFormatLines = lines.slice(startIndex + 3, endIndex - 1);
+  const newFormatLines = oldFormatLines.filter(
+    (l) => !l.split('').every((c) => c === '-'),
+  );
+
+  return newFormatLines;
 };
 
 // get total line from coverage-file
@@ -232,14 +237,14 @@ const toTable = (data, options, dataFromXml = null) => {
       }
 
       const allFilesInFolder = Object.values(folders[folderPath]).map(
-        (f) => f.name
+        (f) => f.name,
       );
 
       folders[folderPath] = folders[folderPath].filter((f) =>
-        changedFiles.all.some((c) => c.includes(f.name))
+        changedFiles.all.some((c) => c.includes(f.name)),
       );
       const fileExistsInFolder = allFilesInFolder.some((f) =>
-        changedFiles.all.some((c) => c.includes(f))
+        changedFiles.all.some((c) => c.includes(f)),
       );
       return fileExistsInFolder;
     })
@@ -249,7 +254,7 @@ const toTable = (data, options, dataFromXml = null) => {
         toFolderTd(key, options),
         ...folders[key].map((file) => toRow(file, key !== '', options)),
       ],
-      []
+      [],
     );
 
   const hasLines = rows.length > 0;

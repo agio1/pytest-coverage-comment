@@ -17,6 +17,42 @@ const FILE_STATUSES = Object.freeze({
   RENAMED: 'renamed',
 });
 
+const createOrEditComment = async (
+  octokit,
+  repo,
+  owner,
+  issue_number,
+  body,
+  WATERMARK,
+) => {
+  // Now decide if we should issue a new comment or edit an old one
+  const { data: comments } = await octokit.issues.listComments({
+    repo,
+    owner,
+    issue_number,
+  });
+
+  const comment = comments.find((c) => c.body.startsWith(WATERMARK));
+
+  if (comment) {
+    core.info('Found previous comment, updating');
+    await octokit.issues.updateComment({
+      repo,
+      owner,
+      comment_id: comment.id,
+      body,
+    });
+  } else {
+    core.info('No previous comment found, creating a new one');
+    await octokit.issues.createComment({
+      repo,
+      owner,
+      issue_number,
+      body,
+    });
+  }
+};
+
 const main = async () => {
   const token = core.getInput('github-token', { required: true });
   const title = core.getInput('title', { required: false });
@@ -27,9 +63,12 @@ const main = async () => {
     required: false,
   });
   const hideComment = core.getBooleanInput('hide-comment', { required: false });
+  const xmlSkipCovered = core.getBooleanInput('xml-skip-covered', {
+    required: false,
+  });
   const reportOnlyChangedFiles = core.getBooleanInput(
     'report-only-changed-files',
-    { required: false }
+    { required: false },
   );
   const removeLinkFromBadge = core.getBooleanInput('remove-link-from-badge', {
     required: false,
@@ -39,6 +78,7 @@ const main = async () => {
   });
   const defaultBranch = core.getInput('default-branch', { required: false });
   const covFile = core.getInput('pytest-coverage-path', { required: false });
+  const issueNumberInput = core.getInput('issue-number', { required: false });
   const covXmlFile = core.getInput('pytest-xml-coverage-path', {
     required: false,
   });
@@ -71,12 +111,14 @@ const main = async () => {
     hideReport,
     createNewComment,
     hideComment,
+    xmlSkipCovered,
     reportOnlyChangedFiles,
     removeLinkFromBadge,
     defaultBranch,
     xmlTitle,
     multipleFiles,
   };
+
   options.repoUrl =
     payload.repository?.html_url || `https://github.com/${options.repository}`;
 
@@ -87,13 +129,19 @@ const main = async () => {
   } else if (eventName === 'push') {
     options.commit = payload.after;
     options.head = context.ref;
+  } else if (eventName === 'workflow_dispatch') {
+    options.commit = context.sha;
+    options.head = context.ref;
+  } else if (eventName === 'workflow_run') {
+    options.commit = payload.workflow_run.head_sha;
+    options.head = payload.workflow_run.head_branch;
   }
 
   if (options.reportOnlyChangedFiles) {
-    const changedFiles = await getChangedFiles(options);
+    const changedFiles = await getChangedFiles(options, issueNumberInput);
     options.changedFiles = changedFiles;
 
-    // when github event come different from `pull_request` or `push`
+    // when github event is different from `pull_request`, `workflow_dispatch`, `workflow_run` or `push`
     if (!changedFiles) {
       options.reportOnlyChangedFiles = false;
     }
@@ -138,7 +186,9 @@ const main = async () => {
 
   if (
     !options.hideReport &&
-    html.length + summaryReport.length > MAX_COMMENT_LENGTH
+    html.length + summaryReport.length > MAX_COMMENT_LENGTH &&
+    eventName != 'workflow_dispatch' &&
+    eventName != 'workflow_run'
   ) {
     // generate new html without report
     // prettier-ignore
@@ -185,7 +235,11 @@ const main = async () => {
   const body = WATERMARK + finalHtml;
   const octokit = github.getOctokit(token);
 
-  const issue_number = payload.pull_request ? payload.pull_request.number : 0;
+  const issue_number = payload.pull_request
+    ? payload.pull_request.number
+    : issueNumberInput
+      ? issueNumberInput
+      : 0;
 
   if (eventName === 'push') {
     core.info('Create commit comment');
@@ -209,43 +263,53 @@ const main = async () => {
         body,
       });
     } else {
-      // Now decide if we should issue a new comment or edit an old one
-      const { data: comments } = await octokit.issues.listComments({
+      await createOrEditComment(
+        octokit,
         repo,
         owner,
         issue_number,
-      });
-
-      const comment = comments.find((c) => c.body.startsWith(WATERMARK));
-
-      if (comment) {
-        core.info('Found previous comment, updating');
-        await octokit.issues.updateComment({
-          repo,
-          owner,
-          comment_id: comment.id,
-          body,
-        });
-      } else {
-        core.info('No previous comment found, creating a new one');
+        body,
+        WATERMARK,
+      );
+    }
+  } else if (
+    eventName === 'workflow_dispatch' ||
+    eventName === 'workflow_run'
+  ) {
+    await core.summary.addRaw(body, true).write();
+    if (!issueNumberInput) {
+      // prettier-ignore
+      core.warning(`To use this action on a \`${eventName}\`, you need to pass an pull request number.`)
+    } else {
+      if (createNewComment) {
+        core.info('Creating a new comment');
         await octokit.issues.createComment({
           repo,
           owner,
           issue_number,
           body,
         });
+      } else {
+        await createOrEditComment(
+          octokit,
+          repo,
+          owner,
+          issue_number,
+          body,
+          WATERMARK,
+        );
       }
     }
   } else {
     if (!options.hideComment) {
       // prettier-ignore
-      core.warning(`This action supports comments only on \`pull_request\`, \`pull_request_target\` and \`push\` events. \`${eventName}\` events are not supported.\nYou can use the output of the action.`)
+      core.warning(`This action supports comments only on \`pull_request\`, \`pull_request_target\`, \`push\`, \`workflow_run\` and \`workflow_dispatch\`  events. \`${eventName}\` events are not supported.\nYou can use the output of the action.`)
     }
   }
 };
 
 // generate object of all files that changed based on commit through Github API
-const getChangedFiles = async (options) => {
+const getChangedFiles = async (options, pr_number) => {
   try {
     const { context } = github;
     const { eventName, payload } = context;
@@ -265,9 +329,21 @@ const getChangedFiles = async (options) => {
         base = payload.before;
         head = payload.after;
         break;
+      case 'workflow_run':
+      case 'workflow_dispatch': {
+        const { data } = await octokit.pulls.get({
+          owner,
+          repo,
+          pull_number: pr_number,
+        });
+
+        base = data.base.label;
+        head = data.head.label;
+        break;
+      }
       default:
         // prettier-ignore
-        core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\` and \`push\`, \`${eventName}\` events are not supported.`)
+        core.warning(`\`report-only-changed-files: true\` supports only on \`pull_request\`, \`workflow_run\`, \`workflow_dispatch\` and \`push\`. Other \`${eventName}\` events are not supported.`)
         return null;
     }
 
@@ -298,7 +374,7 @@ const getChangedFiles = async (options) => {
     if (response.status !== 200) {
       core.setFailed(
         `The GitHub API for comparing the base and head commits for this ${eventName} event returned ${response.status}, expected 200. ` +
-          "Please submit an issue on this action's GitHub repo."
+          "Please submit an issue on this action's GitHub repo.",
       );
     }
 
