@@ -1,5 +1,283 @@
 # Changelog of the Pytest Coverage Comment
 
+## [Pytest Coverage Comment 1.13.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.13.0)
+
+**Release Date:** 2026-10-26
+
+#### Changes
+
+- new `annotate-missing-lines` option: adds GitHub annotations on lines added in the pull request or push that aren't covered by tests (missing lines and partial branches), shown right below the code in the "Files changed" tab. Works with txt, xml and json coverage on `pull_request`, `pull_request_target` and `push` events. Combine it with `hide-comment: true` to get annotations without a PR comment, fixes #321
+- new `annotation-type` option to set the annotation level: `notice`, `warning` (default) or `error`
+- `coverage-path-prefix` is now stripped only from the start of a changed file's path (previously the first match anywhere in the path was removed)
+
+## [Pytest Coverage Comment 1.12.5](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.12.5)
+
+**Release Date:** 2026-10-24
+
+#### Changes
+
+- escape report values in the coverage table and keep them out of markdown parsing, so a crafted coverage report can't inject HTML, markdown, links or a fake badge into the comment
+- url-encode file paths in coverage table links, don't link paths with `..`, support windows `\` paths, and strip the workspace prefix from missing-line links
+- fix a crash when a coverage report has a top-level folder named like an Object member (e.g. `constructor`)
+
+## [Pytest Coverage Comment 1.12.4](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.12.4)
+
+**Release Date:** 2026-10-24
+
+#### Changes
+
+- bump dev dependencies: `vitest` 5.0.5, `@vitest/coverage-v8` 5.0.5, `@types/node` 26.6.5, `eslint` 10.13.0, `typescript-eslint` 8.72.0, `prettier` 3.9.10, `vite` 8.3.5
+- bump `undici` from 6.29.0 to 6.29.1 (fixes two high severity vulnerabilities)
+
+## [Pytest Coverage Comment 1.12.3](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.12.3)
+
+**Release Date:** 2026-10-03
+
+#### Changes
+
+- bump dev dependencies: `vitest` 5.0.3, `@vitest/coverage-v8` 5.0.3, `@types/node` 26.6.4, `eslint` 10.12.0, `typescript-eslint` 8.71.0, `prettier` 3.9.9 (#309)
+- bump `undici` from 6.28.0 to 6.29.0 (#309)
+- bump `brace-expansion` from 5.0.8 to 5.0.12 (fixes four security vulnerabilities) (#309)
+
+## [Pytest Coverage Comment 1.12.2](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.12.2)
+
+**Release Date:** 2026-09-01
+
+#### Changes
+
+- bump dev dependencies: `@types/node` 26.4.0, `@vercel/ncc` 0.45.0, `@vitest/coverage-v8` 4.1.11, `vitest` 4.1.11, `eslint` 10.9.1, `typescript-eslint` 8.68.0 (#302)
+
+## [Pytest Coverage Comment 1.12.1](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.12.1)
+
+**Release Date:** 2026-08-30
+
+#### Changes
+
+- fix a rare case where the comment was still too long and failed to post — it's now always truncated to fit GitHub's limit (#301), fixes #299
+
+## [Pytest Coverage Comment 1.12.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.12.0)
+
+**Release Date:** 2026-08-30
+
+#### Changes
+
+- show a warning inside the comment itself when it's too long (over 65,536 characters) and the detailed coverage report gets dropped — previously the report silently disappeared and the reason was only visible in the job log. The warning links to the job log, which lists the ways to reduce the comment size (#298), thanks to [@mschoettle](https://github.com/mschoettle) for contribution
+
+## [Pytest Coverage Comment 1.11.2](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.11.2)
+
+**Release Date:** 2026-08-26
+
+#### Changes
+
+- improve the comment message when `report-only-changed-files` is enabled and none of the changed files appear in the coverage report — it now says _"No changed files were found in the coverage report"_ instead of the misleading _"No files were changed during this commit"_ (#296), thanks to [@mschoettle](https://github.com/mschoettle) for contribution
+
+## [Pytest Coverage Comment 1.11.1](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.11.1)
+
+**Release Date:** 2026-08-22
+
+#### Changes
+
+- bump `undici` from 6.27.0 to 6.28.0 (fixes three security vulnerabilities)
+
+## [Pytest Coverage Comment 1.11.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.11.0)
+
+**Release Date:** 2026-08-02
+
+#### Changes
+
+- add `show-failed-tests` input that lists failed tests (up to `max-failed-tests`) in the comment as a collapsible block with the test name linked to its file, a short failure reason and the pytest output (#293), requested in #26
+- add `max-failed-tests` input to cap the number of shown failed tests (30 by default, in total across all junit files, shared with `multiple-files` mode) (#293)
+- add `failedTestsHtml` output with the rendered block, empty when the option is disabled or all tests pass (#293)
+
+## [Pytest Coverage Comment 1.10.1](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.10.1)
+
+**Release Date:** 2026-08-01
+
+#### Changes
+
+- bump dev dependencies: `@types/node` 26.1.2, `@vitest/coverage-v8` 4.1.10, `vitest` 4.1.10, `eslint` 10.8.0, `typescript-eslint` 8.65.0, `prettier` 3.9.6 (#290)
+- bump `brace-expansion` from 5.0.6 to 5.0.8 (#287)
+- bump `schneegans/dynamic-badges-action` from 1.8.0 to 1.9.0 in workflows (#289)
+
+## [Pytest Coverage Comment 1.10.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.10.0)
+
+**Release Date:** 2026-07-05
+
+#### Changes
+
+- add support for parsing the JSON coverage report from `coverage json` via the new `pytest-json-coverage-path` input, including branch coverage and partial-branch arrows (`line->target`, `line->exit`) that match `coverage report -m` (#286)
+
+## [Pytest Coverage Comment 1.9.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.9.0)
+
+**Release Date:** 2026-07-04
+
+#### Changes
+
+- fix the Coverage percentage when branch coverage is enabled — it now combines statement and branch coverage and rounds the same way `coverage report` does, instead of showing `100%` when branches are only partially covered (#284), thanks to [@mschoettle](https://github.com/mschoettle) for contribution
+
+## [Pytest Coverage Comment 1.8.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.8.0)
+
+**Release Date:** 2026-06-27
+
+#### Changes
+
+- show partially-covered branches as `line->target` arrows in the `Missing` column when parsing XML coverage (`pytest-xml-coverage-path`), matching the output of `coverage report --show-missing` (#274), thanks to [@mschoettle](https://github.com/mschoettle) for contribution
+
+## [Pytest Coverage Comment 1.7.3](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.7.3)
+
+**Release Date:** 2026-06-27
+
+#### Changes
+
+- bump `@vercel/ncc` 0.38.4 → 0.44.0 (Node 24/26 + TypeScript 6 support)
+- bump dev dependencies: `@types/node` 26.0.1, `vitest` 4.1.9, `eslint` 10.6.0, `typescript-eslint` 8.62.0, `prettier` 3.8.5
+
+## [Pytest Coverage Comment 1.7.2](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.7.2)
+
+**Release Date:** 2026-04-18
+
+#### Changes
+
+- bump dev dependencies: `typescript` 6.0.3, `vitest` 4.1.4, `eslint` 10.2.1, `typescript-eslint` 8.58.2
+
+## [Pytest Coverage Comment 1.7.1](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.7.1)
+
+**Release Date:** 2026-03-14
+
+#### Changes
+
+- fix 5 security vulnerabilities in `undici` (6.23.0 → 6.24.1) (#260)
+- bump dev dependencies
+
+## [Pytest Coverage Comment 1.7.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.7.0)
+
+**Release Date:** 2026-03-13
+
+#### Changes
+
+- enable immutable releases for supply chain security (#256)
+- bump `flatted` from 3.3.3 to 3.4.1 to fix security vulnerability
+
+**Note:** No changes to action inputs, outputs, or behavior. This improves release security following [GitHub's immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) feature.
+
+## [Pytest Coverage Comment 1.6.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.6.0)
+
+**Release Date:** 2026-03-06
+
+#### Changes
+
+- migrate codebase from JavaScript to TypeScript
+- add unit tests (91 tests) using Vitest with V8 coverage
+
+**Note:** This is an internal rewrite — no changes to action inputs, outputs, or behavior. Fully backward compatible.
+
+## [Pytest Coverage Comment 1.5.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.5.0)
+
+**Release Date:** 2026-02-28
+
+#### Changes
+
+- feat: add `hide-emoji` option to hide emoji shortcodes from the test summary table (#251)
+- docs: update README examples to use `@v1` tag and latest action versions (`checkout@v6`, `setup-python@v6`)
+
+## [Pytest Coverage Comment 1.4.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.4.0)
+
+**Release Date:** 2026-02-22
+
+#### Changes
+
+- feat: auto-detect and display branch coverage columns (`Branch`, `BrPart`) in coverage table (#110)
+- supported for both text format (`pytest --cov --cov-branch`) and XML format (`coverage.xml`)
+- no new action inputs required — columns appear automatically when branch data is present
+- fully backward compatible — existing users see no change
+
+## [Pytest Coverage Comment 1.3.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.3.0)
+
+**Release Date:** 2026-02-21
+
+#### Changes
+
+- feat: add XML coverage support in `multiple-files` mode (#200), thanks to [@hayes0724](https://github.com/hayes0724) for contribution
+- `multiple-files` input now auto-detects XML coverage files by `.xml` extension
+- allows mixing TXT and XML coverage formats in the same multi-file report (useful for monorepos)
+- add safety check for XML coverage structure to prevent runtime errors
+
+## [Pytest Coverage Comment 1.2.1](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.2.1)
+
+**Release Date:** 2026-02-21
+
+#### Changes
+
+- fix fork PR permission error with specific guidance for `pull_request_target` (#243)
+- bump production deps: `@actions/core` to 2.0.3, `@actions/github` to 8.0.1
+- bump dev deps: `eslint` to 10.0.1, `globals` to 17.3.0, `prettier` to 3.8.1
+- upgrade action runtime from `node20` to `node24`
+- fix comment-too-long code path not replacing HTML with shorter report
+
+## [Pytest Coverage Comment 1.2.0](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.2.0)
+
+**Release Date:** 2025-11-15
+
+#### Changes
+
+- feat: add `text-instead-badge` option to display coverage as simple text instead of badge images (#235)
+- text format displays as `XX% (covered/total)` (e.g., `85% (42/50)`)
+- applies to all coverage reports: main summary and multiple-files tables
+- fully backward compatible - badge mode remains the default
+- feat: add automatic server URL detection for self-hosted GitHub instances (#234)
+
+**Note:** Starting from this version, version bumps follow conventional semantic versioning (MAJOR.MINOR.PATCH) instead of only bumping PATCH versions.
+
+## [Pytest Coverage Comment 1.1.59](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.59)
+
+**Release Date:** 2025-11-08
+
+#### Changes
+
+- fix "Resource not accessible by integration" error with better error handling and documentation (#68)
+- update permission examples to show minimal required permissions (contents: read, pull-requests: write)
+- upgrade package-lock.json from lockfileVersion 2 to 3 (causes extensive but cosmetic changes in dist/index.js)
+
+## [Pytest Coverage Comment 1.1.58](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.58)
+
+**Release Date:** 2025-11-08
+
+#### Changes
+
+- fix handling of annotated git tags in push events (#195)
+- update `@actions/github` from v4.0.0 to v6.0.1 (#229)
+- fix 3 security vulnerabilities in Octokit dependencies
+
+## [Pytest Coverage Comment 1.1.57](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.57)
+
+**Release Date:** 2025-08-30
+
+#### Changes
+
+- fix coverageHtml output empty when using XML coverage files (#204)
+- ensure proper HTML generation for both text and XML coverage file types
+
+## [Pytest Coverage Comment 1.1.56](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.56)
+
+**Release Date:** 2025-08-09
+
+#### Changes
+
+- fix GitHub Actions matrix syntax parsing error in action.yml (#214)
+
+## [Pytest Coverage Comment 1.1.55](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.55)
+
+**Release Date:** 2025-08-09
+
+#### Changes
+
+- fix GitHub Action Summary size limit error by implementing automatic truncation for summaries exceeding 1MB (#209)
+- add `remove-links-to-files` and `remove-links-to-lines` options to reduce comment size by removing clickable links
+- improve README with collapsible sections, better examples, and comprehensive troubleshooting guide
+- align action.yml descriptions with README for consistency and clarity
+- enhance comment size warning system with suggestions for new link removal options
+- bump dev dependencies
+
 ## [Pytest Coverage Comment 1.1.54](https://github.com/MishaKav/pytest-coverage-comment/tree/v1.1.54)
 
 **Release Date:** 2025-04-30

@@ -1,19 +1,22 @@
-const { mkdirSync, writeFileSync } = require('fs');
-const path = require('path');
-const { getCoverageReport } = require('./parse');
-const {
+import { mkdirSync, writeFileSync } from 'fs';
+import * as path from 'path';
+import { getCoverageReport } from './parse';
+import {
+  MAX_FAILED_TESTS,
   getSummaryReport,
   getParsedXml,
   getNotSuccessTest,
-} = require('./junitXml');
-const { getMultipleReport } = require('./multiFiles');
-const { getCoverageXmlReport } = require('./parseXml');
+} from './junitXml';
+import { getMultipleReport } from './multiFiles';
+import { getCoverageXmlReport } from './parseXml';
+import { getCoverageJsonReport } from './parseJson';
+import type { Options } from './types';
 
-/*  
+/*
   Useful git commands
-  git tag -a -m "Export coverage example" v1.1.7 && git push --follow-tags 
-  git tag -d v1.0 
-  git tag -d origin v1.0  
+  git tag -a -m "Export coverage example" v1.1.7 && git push --follow-tags
+  git tag -d v1.0
+  git tag -d origin v1.0
 
   # remove all workflows from repo
   gh api repos/MishaKav/pytest-coverage-comment/actions/runs \
@@ -24,7 +27,7 @@ const { getCoverageXmlReport } = require('./parseXml');
   git branch | grep -v "main" | xargs git branch -D
 */
 
-const getPathToFile = (pathToFile) => {
+const getPathToFile = (pathToFile: string): string | null => {
   if (!pathToFile) {
     return null;
   }
@@ -33,29 +36,31 @@ const getPathToFile = (pathToFile) => {
   return pathToFile.startsWith('/') ? pathToFile : `${__dirname}/${pathToFile}`;
 };
 
-const main = async () => {
+const main = async (): Promise<void> => {
   const covFile = './../data/pytest-coverage_4.txt';
   const xmlFile = './../data/pytest_1.xml';
-  const covXmlFile = './../data/coverage_1.xml';
+  const covXmlFile = './../data/coverage_1.xml'; // use coverage_2.xml for branch coverage
+  const covJsonFile = ''; // e.g. './../data/coverage_2.json' to test json parsing
   const prefix = path.dirname(path.dirname(path.resolve(covFile))) + '/';
-  // eslint-disable-next-line
   const multipleFiles = [
     `My Title 1, ${getPathToFile(covFile)}, ${getPathToFile(xmlFile)}`,
-    `My Title 2, ${getPathToFile(covFile).replace('_4', '_3')}, ${getPathToFile(
+    `My Title 2, ${getPathToFile(covFile)!.replace('_4', '_3')}, ${getPathToFile(
       xmlFile,
-    ).replace('_1', '_2')}`,
+    )!.replace('_1', '_2')}`,
   ];
 
   let finalHtml = '';
 
-  const options = {
+  const options: Options = {
+    token: '',
     repository: 'MishaKav/pytest-coverage-comment',
     commit: 'f9d42291812ed03bb197e48050ac38ac6befe4e5',
     prefix,
     pathPrefix: '',
-    covFile: getPathToFile(covFile),
-    xmlFile: getPathToFile(xmlFile),
-    covXmlFile: getPathToFile(covXmlFile),
+    covFile: getPathToFile(covFile)!,
+    xmlFile: getPathToFile(xmlFile)!,
+    covXmlFile: getPathToFile(covXmlFile)!,
+    covJsonFile: getPathToFile(covJsonFile)!,
     defaultBranch: 'main',
     head: 'feat/test',
     base: 'main',
@@ -67,9 +72,17 @@ const main = async () => {
     reportOnlyChangedFiles: false,
     removeLinkFromBadge: false,
     hideComment: false,
+    hideEmoji: false,
     xmlSkipCovered: false,
     xmlTitle: '',
-    // multipleFiles,
+    showFailedTests: false,
+    maxFailedTests: MAX_FAILED_TESTS,
+    removeLinksToFiles: false,
+    removeLinksToLines: false,
+    textInsteadBadge: false,
+    multipleFiles,
+    annotateMissingLines: false,
+    annotationType: 'warning',
     changedFiles: {
       all: [
         'functions/example_completed/example_completed.py',
@@ -79,24 +92,33 @@ const main = async () => {
     },
   };
 
-  const { html } = options.covXmlFile
-    ? getCoverageXmlReport(options)
-    : getCoverageReport(options);
+  let report;
+  if (options.covJsonFile) {
+    report = getCoverageJsonReport(options);
+  } else if (options.covXmlFile) {
+    report = getCoverageXmlReport(options);
+  } else {
+    report = getCoverageReport(options);
+  }
+
+  const html = report ? report.html : '';
 
   const summaryReport = getSummaryReport(options);
 
   // set to output junitxml values
   if (summaryReport) {
     const parsedXml = getParsedXml(options);
-    const { errors, failures, skipped, tests, time } = parsedXml;
-    const valuesToExport = { errors, failures, skipped, tests, time };
-    const notSuccessTestInfo = getNotSuccessTest(options);
+    if (parsedXml) {
+      const { errors, failures, skipped, tests, time } = parsedXml;
+      const valuesToExport = { errors, failures, skipped, tests, time };
+      const notSuccessTestInfo = getNotSuccessTest(options);
 
-    console.log('notSuccessTestInfo', JSON.stringify(notSuccessTestInfo));
+      console.log('notSuccessTestInfo', JSON.stringify(notSuccessTestInfo));
 
-    Object.entries(valuesToExport).forEach(([key, value]) => {
-      console.log(key, value);
-    });
+      Object.entries(valuesToExport).forEach(([key, value]) => {
+        console.log(key, value);
+      });
+    }
   }
 
   finalHtml += html;
@@ -122,7 +144,7 @@ const main = async () => {
   console.log(resultFile);
 };
 
-main().catch(function (err) {
+main().catch(function (err: Error) {
   console.log(err);
   process.exit(1);
 });
